@@ -1,15 +1,26 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { ChatModule } from './chat/chat.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
+import dataSource from './database/datasource';
 
 @Module({
-  imports: [AuthModule, UsersModule, ChatModule],
+  imports: [
+    ConfigModule.forRoot(),
+    TypeOrmModule.forRootAsync({
+      useFactory: async () => ({
+        ...dataSource.options,
+      }),
+      dataSourceFactory: async () => dataSource,
+    }),
+    AuthModule,
+    UsersModule,
+    ChatModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
