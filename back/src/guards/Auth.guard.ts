@@ -10,6 +10,7 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { IS_PUBLIC_KEY } from 'src/helper/skipAuth';
 import { Request } from 'express';
+import { Socket } from 'socket.io';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -21,7 +22,11 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
+    const client = context.switchToWs().getClient<Socket>();
+
+    const token = request
+      ? this.extractTokenFromHeader(request)
+      : this.extractTokenFromWebSocket(client);
 
     const isPublicRoute = this.reflector.getAllAndOverride<boolean>(
       IS_PUBLIC_KEY,
@@ -46,8 +51,13 @@ export class AuthGuard implements CanActivate {
         });
       }
 
-      request['user'] = payload;
-      request['token'] = token;
+      if (request) {
+        request['user'] = payload;
+        request['token'] = token;
+      } else {
+        client['user'] = payload;
+        client['token'] = token;
+      }
     } catch {
       throw new UnauthorizedException({
         status: 'error',
@@ -61,6 +71,12 @@ export class AuthGuard implements CanActivate {
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
+  }
+
+  private extractTokenFromWebSocket(client: Socket): string | undefined {
+    const token = client.handshake.headers.authorization;
+    const [type, authToken] = token.split(' ') ?? [];
+    return type === 'Bearer' ? authToken : undefined;
   }
 
   private isExpiredToken(token: any): boolean {
