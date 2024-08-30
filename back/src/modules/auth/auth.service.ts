@@ -68,7 +68,7 @@ export class AuthService {
     this.logger.debug(`token: ${token}`);
     return { userWithOutPassword, accessToken: token };
   }
-  async signToken(payload) {
-    return await this.jwtService.sign({ payload });
+  async signToken(userId) {
+    return await this.jwtService.sign({ sub: userId });
   }
 }

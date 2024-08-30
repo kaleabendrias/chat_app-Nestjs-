@@ -22,6 +22,6 @@ export class ChatRoom {
   @OneToMany(() => Message, (message) => message.chatRoom)
   messages: Message[];
 
-  @Column('simple-array')
+  @Column('int', { array: true })
   participants: number[];
 }

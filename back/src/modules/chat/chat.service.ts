@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Message } from './entities/message.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -15,6 +15,37 @@ export class ChatService {
     private chatRoomRepository: Repository<ChatRoom>,
     private userService: UsersService,
   ) {}
+
+  async createRoom(createRoomDto) {
+    const { name, creatorId, participants } = createRoomDto;
+
+    const creator = await this.userService.findByID(creatorId);
+    if (!creator) {
+      throw new HttpException(
+        `User with ID ${creatorId} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    for (const participantId of participants) {
+      const participant = await this.userService.findByID(participantId);
+      if (!participant) {
+        throw new HttpException(
+          `User with ID ${participantId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+    }
+
+    const chatRoom = this.chatRoomRepository.create({
+      name,
+      creator,
+      participants,
+    });
+
+    return await this.chatRoomRepository.save(chatRoom);
+  }
+
   async createMessage(payload: {
     text: string;
     photoUrl?: string;
@@ -47,10 +78,29 @@ export class ChatService {
   }
 
   async getMessages(chatRoomId: string): Promise<Message[]> {
-    return this.messageRepository.find({
+    if (!chatRoomId) {
+      throw new Error('Invalid chatRoomId');
+    }
+    console.log(`Getting messages for chatRoomId: ${chatRoomId}`);
+    const messages = await this.messageRepository.find({
       where: { chatRoom: { id: chatRoomId } },
       relations: ['sender'],
       order: { createdAt: 'ASC' },
     });
+    console.log(`messages: ${messages}`);
+    return messages;
+  }
+
+  async findRoomByParticipants(
+    participants: number[],
+  ): Promise<ChatRoom | null> {
+    const participantsArrayLiteral = `{${participants.join(',')}}`;
+
+    return this.chatRoomRepository
+      .createQueryBuilder('room')
+      .where('room.participants @> :participants', {
+        participants: participantsArrayLiteral,
+      })
+      .getOne();
   }
 }

@@ -20,11 +20,7 @@ export class AuthController {
   @Public()
   @Post('/login')
   async login(@Body() loginDto: LoginDto) {
+    console.log('Validated loginDto:', loginDto);
     return this.authService.login(loginDto);
-  }
-
-  @Post('/damn')
-  async hidden() {
-    return 'hurray';
   }
 }
