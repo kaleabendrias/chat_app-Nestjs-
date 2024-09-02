@@ -43,6 +43,8 @@ export class AuthGuard implements CanActivate {
         secret: jwtSecret,
       });
 
+      console.log('JWT Payload:', payload);
+
       if (this.isExpiredToken(payload)) {
         throw new UnauthorizedException({
           status: 'error',
@@ -52,10 +54,10 @@ export class AuthGuard implements CanActivate {
       }
 
       if (request) {
-        request['user'] = payload;
+        request['user'] = { id: payload.sub };
         request['token'] = token;
       } else {
-        client['user'] = payload;
+        client['user'] = { id: payload.sub };
         client['token'] = token;
       }
     } catch {

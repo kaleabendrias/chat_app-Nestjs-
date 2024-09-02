@@ -1,8 +1,15 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 
 @Controller('chat')
+@UseInterceptors(ClassSerializerInterceptor)
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 

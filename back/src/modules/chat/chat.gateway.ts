@@ -122,6 +122,12 @@ export class ChatGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody() createRoomDto: CreateRoomDto,
   ) {
+    if (!createRoomDto.name || !createRoomDto.participants.length) {
+      throw new customWsException(
+        'Invalid room creation data',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const maskedId = this.maskClientId(client.id);
 
     try {
@@ -178,16 +184,16 @@ export class ChatGateway {
 
   @SubscribeMessage('joinRoom')
   async handleJoinRoom(client: Socket, payload) {
-    // Extract chatRoomId from payload object
-    console.log(payload);
-
     if (typeof payload === 'string') {
       payload = JSON.parse(payload);
     }
 
     const { chatRoomId } = payload;
-
-    console.log(chatRoomId);
+    if (!chatRoomId) {
+      this.logger.error('Invalid chatRoomId received');
+      client.emit('Error', 'Invalid chatRoomId');
+      return;
+    }
 
     if (!chatRoomId) {
       this.logger.error('Invalid chatRoomId received');

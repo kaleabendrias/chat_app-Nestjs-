@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
@@ -9,15 +10,29 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
+  @ApiProperty({
+    description: 'The username of the user',
+    example: 'john_doe',
+  })
   @IsString()
   @IsNotEmpty()
   username: string;
 
+  @ApiProperty({
+    description: 'The email address of the user',
+    example: 'john.doe@example.com',
+  })
   @IsString()
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
+  @ApiProperty({
+    description: 'The password of the user',
+    example: 'StrongP@ssw0rd!',
+    minLength: 8,
+    maxLength: 32,
+  })
   @IsString()
   @IsNotEmpty()
   @Length(8, 32, {
@@ -28,6 +43,10 @@ export class CreateUserDto {
   })
   password: string;
 
+  @ApiPropertyOptional({
+    description: 'The profile picture URL of the user',
+    example: 'https://example.com/profile.jpg',
+  })
   @IsOptional()
   @IsUrl({}, { message: 'Profile picture must be a valid URL' })
   profilePicture?: string;

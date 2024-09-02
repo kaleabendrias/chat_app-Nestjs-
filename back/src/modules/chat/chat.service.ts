@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { ChatRoom } from './entities/chatRoom.entities';
 import { UsersService } from '../users/users.service';
 import { WsException } from '@nestjs/websockets';
+import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class ChatService {
@@ -77,7 +78,7 @@ export class ChatService {
     return this.messageRepository.save(message);
   }
 
-  async getMessages(chatRoomId: string): Promise<Message[]> {
+  async getMessages(chatRoomId: string): Promise<any[]> {
     if (!chatRoomId) {
       throw new Error('Invalid chatRoomId');
     }
@@ -87,8 +88,12 @@ export class ChatService {
       relations: ['sender'],
       order: { createdAt: 'ASC' },
     });
-    console.log(`messages: ${messages}`);
-    return messages;
+
+    const sanitizedMessages = messages.map((message) =>
+      instanceToPlain(message),
+    );
+    console.log(`messages: ${sanitizedMessages}`);
+    return sanitizedMessages;
   }
 
   async findRoomByParticipants(
