@@ -1,4 +1,7 @@
 import * as dotenv from 'dotenv';
+import { ChatRoom } from 'src/modules/chat/entities/chatRoom.entities';
+import { Message } from 'src/modules/chat/entities/message.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 import { DataSource } from 'typeorm';
 
 dotenv.config();
@@ -12,11 +15,12 @@ const dataSource = new DataSource({
   host: process.env.DB_HOST,
   port: +process.env.DB_PORT,
   database: process.env.DB_NAME,
-  entities: [process.env.DB_ENTITIES],
+  entities: [User, Message, ChatRoom],
   migrations: [process.env.DB_MIGRATIONS],
   synchronize: isDevelopment,
   migrationsTableName: 'migrations',
   ssl: process.env.DB_SSL === 'true',
+  logging: true,
 });
 
 export async function initializeDataSource() {

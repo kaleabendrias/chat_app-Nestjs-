@@ -1,42 +1,25 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { CreateChatDto } from './dto/create-chat.dto';
-import { UpdateChatDto } from './dto/update-chat.dto';
+import { CreateRoomDto } from './dto/create-room.dto';
 
 @Controller('chat')
+@UseInterceptors(ClassSerializerInterceptor)
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
+  @Post('/create')
+  createRoom(@Body() createRoomDto: CreateRoomDto) {
+    return this.chatService.createRoom(createRoomDto);
+  }
+
   @Post()
-  create(@Body() createChatDto: CreateChatDto) {
-    return this.chatService.create(createChatDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.chatService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.chatService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateChatDto: UpdateChatDto) {
-    return this.chatService.update(+id, updateChatDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.chatService.remove(+id);
+  create(@Body() createChatDto: any) {
+    return this.chatService.createMessage(createChatDto);
   }
 }

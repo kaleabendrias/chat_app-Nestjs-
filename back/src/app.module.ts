@@ -10,13 +10,14 @@ import dataSource from './database/datasource';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './guards/Auth.guard';
 import { JwtModule } from '@nestjs/jwt';
+import { ChatGateway } from './modules/chat/chat.gateway';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '60m' },
+      signOptions: { expiresIn: '60s' },
     }),
     TypeOrmModule.forRootAsync({
       useFactory: async () => ({
@@ -35,6 +36,7 @@ import { JwtModule } from '@nestjs/jwt';
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    ChatGateway,
   ],
 })
 export class AppModule {}
